@@ -1,3 +1,5 @@
+
+
 #ifndef CLASSES_DOT_H
 #define CLASSES_DOT_H
 
@@ -17,4 +19,4 @@ public:
 };
 
 
-#endif
+#endif //CLASSES_DOT_H
