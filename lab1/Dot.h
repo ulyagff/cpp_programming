@@ -16,6 +16,7 @@ public:
     ~Dot() {}
 
     Dot & operator = (const Dot &dot);
+    bool operator!=(const Dot &dot);
 };
 
 

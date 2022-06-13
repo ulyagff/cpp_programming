@@ -36,7 +36,7 @@ public:
     }
 
     Polynom operator-() {
-        std::map <int, int>::iterator it = cof.begin();
+        auto it = cof.begin();
         while (it != cof.end()) {
             it->second = -it->second;
             it++;
@@ -75,7 +75,7 @@ public:
     }
 
     friend std::ostream& operator<< (std::ostream &out, Polynom &p) {
-        std::map <int, int>:: iterator it = p.cof.begin();
+        auto it = p.cof.begin();
         while (it != p.cof.end()) {
             if (it->second != 0) {
                 if (it->first == 0)
@@ -88,10 +88,10 @@ public:
 
                 }
                 else
-                    if (it->second == 1)
-                        out << "x^" << it->first << ' ';
-                    else
-                        out << it->second << "x^" << it->first << ' ';
+                if (it->second == 1)
+                    out << "x^" << it->first << ' ';
+                else
+                    out << it->second << "x^" << it->first << ' ';
             }
             it++;
         }
@@ -100,9 +100,9 @@ public:
 
     Polynom operator+( Polynom &p) {
         Polynom c_l = *this;
-        std::map <int, int>:: iterator it_l = c_l.cof.begin();
+        auto it_l = c_l.cof.begin();
 
-        std::map <int, int>:: iterator it_r = p.cof.begin();
+        auto it_r = p.cof.begin();
         while (it_r != p.cof.end()) {
             it_l = c_l.cof.find(it_r->first);
             if (it_l != c_l.cof.end()) it_l->second+=it_r->second;
@@ -114,10 +114,10 @@ public:
 
     Polynom operator-( Polynom &p) {
         Polynom c_l = *this;
-        std::map <int, int>:: iterator it_l = c_l.cof.begin();
+        auto it_l = c_l.cof.begin();
         -p;
 
-        std::map <int, int>:: iterator it_r = p.cof.begin();
+        auto it_r = p.cof.begin();
         while (it_r != p.cof.end()) {
             it_l = c_l.cof.find(it_r->first);
             if (it_l != c_l.cof.end()) it_l->second+=it_r->second;
@@ -129,9 +129,9 @@ public:
     }
 
     Polynom operator+=( Polynom &p) {
-        std::map <int, int>:: iterator it_l = cof.begin();
+        auto it_l = cof.begin();
 
-        std::map <int, int>:: iterator it_r = p.cof.begin();
+        auto it_r = p.cof.begin();
         while (it_r != p.cof.end()) {
             it_l = cof.find(it_r->first);
             if (it_l != cof.end()) it_l->second+=it_r->second;
@@ -142,9 +142,9 @@ public:
     }
 
     Polynom operator-=( Polynom &p) {
-        std::map <int, int>:: iterator it_l = cof.begin();
+        auto it_l = cof.begin();
         -p;
-        std::map <int, int>:: iterator it_r = p.cof.begin();
+        auto it_r = p.cof.begin();
         while (it_r != p.cof.end()) {
             it_l = cof.find(it_r->first);
             if (it_l != cof.end()) it_l->second+=it_r->second;
@@ -157,7 +157,7 @@ public:
 
     Polynom operator*( int &n) {
         Polynom c_l = *this;
-        std::map <int, int>:: iterator it_l = c_l.cof.begin();
+        auto it_l = c_l.cof.begin();
 
         while (it_l != c_l.cof.end()) {
             it_l->second *= n;
@@ -167,7 +167,7 @@ public:
     }
 
     Polynom operator*=( int &n) {
-        std::map <int, int>:: iterator it_l = cof.begin();
+        auto it_l = cof.begin();
 
         while (it_l != cof.end()) {
             it_l->second *= n;
@@ -178,12 +178,12 @@ public:
 
     Polynom operator*( Polynom &p) {
         Polynom res;
-        std::map <int, int>:: iterator it_res = res.cof.begin();
+        auto it_res = res.cof.begin();
 
         Polynom c_l = *this;
-        std::map <int, int>:: iterator it_l = c_l.cof.begin();
+        auto it_l = c_l.cof.begin();
 
-        std::map <int, int>:: iterator it_r = p.cof.begin();
+        auto it_r = p.cof.begin();
         int cur_deg, cur_cof;
         while (it_r != p.cof.end()) {
             while (it_l != c_l.cof.end()) {
@@ -203,12 +203,12 @@ public:
 
     Polynom operator*=( Polynom &p) {
         Polynom res;
-        std::map <int, int>:: iterator it_res = res.cof.begin();
+        auto it_res = res.cof.begin();
 
         Polynom c_l = *this;
-        std::map <int, int>:: iterator it_l = c_l.cof.begin();
+        auto it_l = c_l.cof.begin();
 
-        std::map <int, int>:: iterator it_r = p.cof.begin();
+        auto it_r = p.cof.begin();
         int cur_deg, cur_cof;
         while (it_r != p.cof.end()) {
             while (it_l != c_l.cof.end()) {
@@ -228,34 +228,47 @@ public:
     }
 
     int& operator[](int n) {
-        std::map <int, int>:: iterator it = cof.begin();
+        auto it = cof.begin();
         it = cof.find(n);
-//        try {
-//            if (it != cof.end())
-//                return it->second;
-//            else
-//                throw -1;
-//        }
-//        catch (int e)
-//        {
-//            std::cerr << e << "\n";
-//            cof.insert(std::make_pair(n , 0));
-//            return cof.find(n)->second;
-//        }
         if (it != cof.end())
-                return it->second;
+            return it->second;
         else {
             cof.insert(std::make_pair(n , 0));
             return cof.find(n)->second;
         }
-
     }
 
+    Polynom integral() {
+        auto it = cof.begin();
+        Polynom res;
+        int cur_deg, cur_cof;
+        while (it != cof.end()) {
+            if (it->second != 0) {
+                cur_deg = it->first + 1;
+                cur_cof = (it->second)/(cur_deg);
+                res.cof.insert(std::make_pair(cur_deg, cur_cof));
+            }
+            it++;
+        }
+        return res;
+    }
 
-
-
-
-
+    Polynom derivative() {
+        auto it = cof.begin();
+        Polynom res;
+        int cur_deg, cur_cof;
+        while (it != cof.end()) {
+            if (it->second != 0) {
+                if (it->first != 0) {
+                    cur_deg = it->first - 1;
+                    cur_cof = (it->second) * (cur_deg);
+                    res.cof.insert(std::make_pair(cur_deg, cur_cof));
+                }
+            }
+            it++;
+        }
+        return res;
+    }
 private:
     std::map<int, int> cof;
 };

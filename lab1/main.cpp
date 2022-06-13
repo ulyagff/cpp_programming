@@ -4,6 +4,24 @@
 #include <cmath>
 #include "Dot.h"
 
+int miarea (Dot a, Dot b, Dot c)
+{
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+bool miintersect_1 (int a, int b, int c, int d) {
+    if (a > b)
+        std::swap (a, b);
+    if (c > d)
+        std::swap (c, d);
+    return std::max(a,c) <= std::min(b,d);
+}
+
+bool miintersect(Dot a, Dot b, Dot c, Dot d) {
+    return miintersect_1 (a.x, b.x, c.x, d.x)
+           && miintersect_1 (a.y, b.y, c.y, d.y)
+           && miarea(a,b,c) * miarea(a,b,d) <= 0
+           && miarea(c,d,a) * miarea(c,d,b) <= 0;
+}
 
 class Polyline {
 
@@ -32,16 +50,8 @@ public:
         va_end(args);
     }
 
-    Polyline(const Polyline &poly) {
-        count_unit = poly.count_unit;
-        coordinate = poly.coordinate;
-    }
-
-    Polyline & operator = (const Polyline &poly) {
-        count_unit = poly.count_unit;
-        coordinate = poly.coordinate;
-        return *this;
-    }
+    Polyline(const Polyline &poly) = default;
+    Polyline & operator = (const Polyline &poly) = default;
 
     virtual float perimeter() const {
         float per = 0;
@@ -56,7 +66,6 @@ public:
 protected:
     int count_unit;
     std::vector <Dot> coordinate;
-
 };
 
 class Closed_polyline: public Polyline {
@@ -80,20 +89,15 @@ public:
         va_end(args);
     }
 
-    Closed_polyline(const Closed_polyline &c_poly) {
-        count_unit = c_poly.count_unit;
-        coordinate = c_poly.coordinate;
-    }
+    Closed_polyline(const Closed_polyline &c_poly) = default;
 
-    Closed_polyline & operator = (const Closed_polyline &c_poly) {
-        count_unit = c_poly.count_unit;
-        coordinate = c_poly.coordinate;
-        return *this;
-    }
+    using Polyline::operator=;
 
     float perimeter() const override{
         int unit = 0;
         float per = 0;
+        if (count_unit == 0)
+            return 0;
         for (int i = 0; i < count_unit - 1; i++) {
             unit = sqrt(pow((coordinate[i].x - coordinate[i + 1].x), 2) + pow((coordinate[i].y - coordinate[i + 1].y), 2));
             per += unit;
@@ -111,9 +115,37 @@ public:
         count_unit = 0;
     }
 
-    r_polygon(std::vector<Dot> &d) {
-        count_unit = d.size();
-        coordinate = d;
+    r_polygon(const std::vector<Dot> &d) {
+        float per = 0;
+        float unit1 = 0, flag = 0, unit = 0;
+        unit = sqrt(pow((coordinate[0].x - coordinate[count_unit - 1].x), 2) + pow((coordinate[0].y - coordinate[count_unit - 1].y), 2));
+
+        for (int i = 0; i < count_unit - 1; i++) {
+            unit1 = sqrt(pow((coordinate[i].x - coordinate[i + 1].x), 2) + pow((coordinate[i].y - coordinate[i + 1].y), 2));
+            if (unit1 != unit)
+                flag = 0;
+        }
+
+        Dot temp[4];
+        while (miintersect(temp[0], temp[1], temp[2], temp[3]) && (temp[3] != coordinate[coordinate.size() - 1]) && (temp[2] != coordinate[coordinate.size() - 2]) && (temp[1] != coordinate[coordinate.size() - 3]) && (temp[0] != coordinate[coordinate.size() - 4])) {
+            Dot t = temp[0];
+            temp[0] = temp[1];
+            temp[1] = temp[2];
+            temp[2] = temp[3];
+            temp[0] = t;
+        }
+
+        if ((temp[3] != coordinate[coordinate.size() - 1]) && (temp[2] != coordinate[coordinate.size() - 2]) && (temp[1] != coordinate[coordinate.size() - 3]) && (temp[0] != coordinate[coordinate.size() - 4]))
+            flag = 1;
+
+        if (flag) {
+            count_unit = d.size();
+            coordinate = d;
+        }
+        else {
+            count_unit = 0;
+            coordinate.clear();
+        }
     }
 
     r_polygon(const r_polygon &polyg) {
@@ -159,7 +191,7 @@ protected:
 
 class Triangle : public r_polygon {
 public:
-    Triangle(std::vector<Dot> &d) {
+    Triangle(const std::vector<Dot> &d) {
             if (d.size() == 3) {
                 count_unit = d.size();
                 coordinate = d;
@@ -181,12 +213,23 @@ public:
 class Trapeze : public r_polygon {
 public:
 
-    explicit Trapeze(std::vector<Dot> &d) {
+    explicit Trapeze(const std::vector<Dot> &d) {
+        bool flag = 0;
             if (d.size() == 4) {
-                count_unit = d.size();
-                coordinate = d;
+                float k1, k2;
+                k1 = (d[1].y - d[0].y)/(d[1].x - d[0].x);
+                k2 = (d[2].y - d[4].y)/(d[2].x - d[4].x);
+                if (k1 == k2) {
+                    count_unit = d.size();
+                    coordinate = d;
+                }
+                else
+                    flag = 1;
             }
-            else std::cout << "this is not a trapeze";
+            else
+                flag = 1;
+            if (flag )
+                std::cout << "this is not a trapeze";
     }
 
 
@@ -203,9 +246,35 @@ public:
 
 class right_polygon : public r_polygon{
 public:
-    right_polygon(std::vector<Dot> &d) {
-        count_unit = d.size();
-        coordinate = d;
+    right_polygon(const std::vector<Dot> &d) {
+        float per = 0;
+        float unit1 = 0, flag = 0, unit = 0;
+        unit = sqrt(pow((coordinate[0].x - coordinate[count_unit - 1].x), 2) + pow((coordinate[0].y - coordinate[count_unit - 1].y), 2));
+
+        for (int i = 0; i < count_unit - 1; i++) {
+            unit1 = sqrt(pow((coordinate[i].x - coordinate[i + 1].x), 2) + pow((coordinate[i].y - coordinate[i + 1].y), 2));
+            if (unit1 != unit)
+                flag = 0;
+        }
+        Dot temp[4];
+        while (miintersect(temp[0], temp[1], temp[2], temp[3]) && (temp[3] != coordinate[coordinate.size() - 1]) && (temp[2] != coordinate[coordinate.size() - 2]) && (temp[1] != coordinate[coordinate.size() - 3]) && (temp[0] != coordinate[coordinate.size() - 4])) {
+            Dot t = temp[0];
+            temp[0] = temp[1];
+            temp[1] = temp[2];
+            temp[2] = temp[3];
+            temp[0] = t;
+        }
+
+        if ((temp[3] != coordinate[coordinate.size() - 1]) && (temp[2] != coordinate[coordinate.size() - 2]) && (temp[1] != coordinate[coordinate.size() - 3]) && (temp[0] != coordinate[coordinate.size() - 4]))
+            flag = 1;
+        if (flag) {
+            count_unit = d.size();
+            coordinate = d;
+        }
+        else {
+            count_unit = 0;
+            coordinate.clear();
+        }
     }
 
     right_polygon(const right_polygon &r_polyg) {

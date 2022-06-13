@@ -10,3 +10,11 @@ Dot& Dot:: operator = (const Dot &dot) {
 
     return *this;
 }
+
+bool Dot::operator!=(const Dot &dot) {
+    if (x != dot.x)
+        return false;
+    if (y != dot.y)
+        return false;
+    return true;
+}
